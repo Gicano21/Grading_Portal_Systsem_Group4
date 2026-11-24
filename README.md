@@ -65,7 +65,7 @@ Start the local development server:
 php spark serve
 ```
 
-Open `http://localhost:8080/` and sign in with a seeded account. The application redirects each account to its role-specific workspace.
+Open `http://localhost:8080/login` for student, instructor, and registrar sign-in, or `http://localhost:8080/admin` for the separate administrator sign-in. The application redirects each account to its role-specific workspace.
 
 ## Database migrations
 
@@ -110,38 +110,41 @@ The role-protected workspaces implement the following use cases:
 
 ### System administrator
 
-- Log in with administrative credentials.
-- Encode new student grades.
-- Update or correct existing grades.
-- View class lists.
+- Sign in through `/admin`.
+- Create, edit, and delete student, instructor, program, and course records.
+- Manage student, instructor, program, and course records. Records referenced by academic history cannot be deleted.
 
 ### Instructor
 
 - Log in using faculty credentials.
-- Encode initial grades for assigned courses.
-- Update previously submitted grades.
+- Encode, update, and delete grades only for assigned courses.
 - View class lists for assigned courses.
 
 ### Registrar
 
-- Log in to the administrative portal.
+- Log in through `/login`.
 - Add class sections or offerings.
 - Enroll students in classes.
 - Assign instructors to classes.
-- Generate and print student grade reports.
+- Search for student grades and generate printable reports for an individual student or a program/course group.
+
+All signed-in users can change their password from the **Change password** menu. Student grade views are restricted to the signed-in student's own records.
 
 ## Project progress
 
 - [x] Password-hash-based login, logout, and role-protected routes.
 - [x] Student grade view scoped to the signed-in student's records.
-- [x] Instructor class list restricted to assigned offerings, with grade entry and updates.
-- [x] Administrator class lists and grade entry/update across offerings.
+- [x] Separate administrator sign-in at `/admin`.
+- [x] Administrator CRUD for students, instructors, programs, and courses.
+- [x] Instructor class list restricted to assigned offerings, with grade entry, updates, and deletion.
+- [x] Administrator record management is limited to students, instructors, programs, and courses.
 - [x] Registrar class-offering and section setup, student enrollment, and faculty assignment.
-- [x] Printable grade report for each class offering.
+- [x] Registrar student search and printable individual and program/course grade reports.
+- [x] Authenticated users can change their passwords.
 - [x] Grade validation from 0 to 100 and final-grade arithmetic mean across all four periods.
 - [x] Responsive role-specific portal pages and local demo seeding.
-- [x] Database tests for migrations, seed data, student grade scoping, and grade calculations.
-- [ ] Production account provisioning and password-management workflow.
+- [x] Database tests for migrations, seed data, student grade scoping, grade calculations, password changes, and grade report queries.
+- [ ] Production account provisioning.
 - [ ] Route-level authorization and registrar enrollment tests.
 
 The final grade is calculated only after Prelim, Midterm, Pre-final, and Final are all entered. Until then, it remains pending.

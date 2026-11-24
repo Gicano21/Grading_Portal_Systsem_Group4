@@ -22,10 +22,14 @@
         <?php if ($user): ?>
             <nav class="navigation" aria-label="Main navigation">
                 <?php if ($user->inGroup('admin')): ?>
-                    <a href="<?= site_url('admin') ?>">Overview</a>
-                    <a href="<?= site_url('admin/classes') ?>">Classes &amp; grades</a>
+                    <a href="<?= site_url('admin/dashboard') ?>">Overview</a>
+                    <a href="<?= site_url('admin/records/students') ?>">Students</a>
+                    <a href="<?= site_url('admin/records/instructors') ?>">Instructors</a>
+                    <a href="<?= site_url('admin/records/programs') ?>">Programs</a>
+                    <a href="<?= site_url('admin/records/courses') ?>">Courses</a>
                 <?php elseif ($user->inGroup('registrar')): ?>
                     <a href="<?= site_url('registrar') ?>">Registrar workspace</a>
+                    <a href="<?= site_url('registrar/grades') ?>">Search grades</a>
                 <?php elseif ($user->inGroup('instructor')): ?>
                     <a href="<?= site_url('instructor/classes') ?>">My classes</a>
                 <?php else: ?>
@@ -34,6 +38,7 @@
             </nav>
             <div class="user-menu">
                 <span><?= esc($user->username) ?> <small><?= esc($roleLabel) ?></small></span>
+                <a class="button button-quiet" href="<?= site_url('account/password') ?>">Change password</a>
                 <form method="post" action="<?= site_url('logout') ?>">
                     <?= csrf_field() ?>
                     <button class="button button-quiet" type="submit">Sign out</button>

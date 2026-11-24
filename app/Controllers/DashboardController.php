@@ -9,7 +9,7 @@ class DashboardController extends BaseController
         $user = auth()->user();
 
         foreach ([
-            'admin'      => 'admin',
+            'admin'      => 'admin/dashboard',
             'registrar'  => 'registrar',
             'instructor' => 'instructor/classes',
             'student'    => 'student/grades',

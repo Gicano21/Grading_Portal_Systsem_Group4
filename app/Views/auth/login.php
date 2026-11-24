@@ -39,6 +39,7 @@
                 </ul>
             </details>
         <?php endif; ?>
+        <p class="table-note"><a class="text-link" href="<?= site_url('admin') ?>">Administrator sign in</a></p>
     </div>
 </section>
 <?= $this->endSection() ?>

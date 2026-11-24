@@ -85,4 +85,32 @@ class GradeService
 
         return [];
     }
+
+    public function deleteForOffering(int $classOfferingId, int $courseEnrollmentId): bool
+    {
+        $studentId = null;
+        foreach ((new PortalData())->classRoster($classOfferingId) as $student) {
+            if ((int) $student['course_enrollment_id'] === $courseEnrollmentId) {
+                $studentId = (int) $student['student_id'];
+                break;
+            }
+        }
+
+        if ($studentId === null) {
+            return false;
+        }
+
+        $db = db_connect();
+        $grade = $db->table('grades')
+            ->where('course_enrollment_id', $courseEnrollmentId)
+            ->where('student_id', $studentId)
+            ->get()
+            ->getRowArray();
+
+        if ($grade === null) {
+            return false;
+        }
+
+        return $db->table('grades')->where('grade_id', $grade['grade_id'])->delete();
+    }
 }

@@ -50,6 +50,40 @@ final class PortalWorkflowTest extends CIUnitTestCase
         auth()->logout();
     }
 
+    public function testUserCanChangeAndRestoreTheirShieldPassword(): void
+    {
+        $userModel = model(\App\Models\UserModel::class);
+        $user = $userModel->findByCredentials(['username' => 'student1']);
+        $this->assertNotNull($user);
+
+        try {
+            $user->setPassword('PortalNewStrong!2026');
+            $userModel->save($user);
+
+            $updatedUser = $userModel->findByCredentials(['username' => 'student1']);
+            $this->assertNotNull($updatedUser);
+            $this->assertTrue(service('passwords')->verify('PortalNewStrong!2026', $updatedUser->password_hash));
+        } finally {
+            $user = $userModel->findByCredentials(['username' => 'student1']);
+            $user->setPassword('student123');
+            $userModel->save($user);
+        }
+    }
+
+    public function testRegistrarGradeSearchAndProgramCourseReportAreScoped(): void
+    {
+        $portal = new PortalData();
+        $students = $portal->searchStudents('John');
+        $grades = $portal->programCourseGrades(1, 1);
+
+        $this->assertCount(1, $students);
+        $this->assertSame(1, (int) $students[0]['student_id']);
+        $this->assertCount(1, $grades);
+        $this->assertSame(1, (int) $grades[0]['student_id']);
+        $this->assertSame(85, (int) $grades[0]['prelim']);
+        $this->assertSame([], $portal->programCourseGrades(2, 1));
+    }
+
     public function testStudentsOnlyReceiveTheirOwnClassGrades(): void
     {
         $portal = new PortalData();
@@ -86,5 +120,23 @@ final class PortalWorkflowTest extends CIUnitTestCase
         $this->assertNotSame([], $errors);
         $unchangedGrade = $this->db->table('grades')->where('course_enrollment_id', 1)->get()->getRowArray();
         $this->assertEquals(87.5, (float) $unchangedGrade['final_grade']);
+    }
+
+    public function testGradeDeletionIsLimitedToTheOfferingRoster(): void
+    {
+        $service = new GradeService();
+
+        $this->assertFalse($service->deleteForOffering(2, 1));
+        $this->assertTrue($service->deleteForOffering(1, 1));
+        $this->assertFalse($service->deleteForOffering(1, 1));
+
+        $this->assertSame([], $service->saveForOffering(1, [
+            1 => [
+                'prelim'    => '90',
+                'midterm'   => '80',
+                'pre_final' => '85',
+                'final'     => '95',
+            ],
+        ]));
     }
 }

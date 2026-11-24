@@ -1,7 +1,7 @@
 <?= $this->extend('Layout/portal') ?>
 <?= $this->section('title') ?>Registrar workspace<?= $this->endSection() ?>
 <?= $this->section('content') ?>
-<div class="page-heading"><div><p class="eyebrow">ACADEMIC RECORDS</p><h1>Registrar workspace</h1><p class="muted">Set up class offerings, enroll students, and prepare grade reports.</p></div></div>
+<div class="page-heading"><div><p class="eyebrow">ACADEMIC RECORDS</p><h1>Registrar workspace</h1><p class="muted">Set up class offerings, enroll students, and prepare grade reports.</p></div><a class="button button-primary" href="<?= site_url('registrar/grades') ?>">Search &amp; print grades</a></div>
 <section class="stats-grid stats-grid-three">
     <?php foreach (['students' => 'Students', 'courses' => 'Courses', 'classes' => 'Class offerings'] as $key => $label): ?>
         <article class="stat-card"><span><?= esc($label) ?></span><strong><?= esc((string) $stats[$key]) ?></strong><small>In the system</small></article>

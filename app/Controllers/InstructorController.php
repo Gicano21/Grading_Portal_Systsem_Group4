@@ -54,4 +54,20 @@ class InstructorController extends BaseController
         return redirect()->to(site_url('instructor/classes/' . $classOfferingId . '/grades'))
             ->with('message', 'Grades saved. Final grades are the average of all four periods.');
     }
+
+    public function deleteGrade(int $classOfferingId, int $courseEnrollmentId)
+    {
+        $user = auth()->user();
+        if ((new PortalData())->classOffering($classOfferingId, (int) $user->role_id) === null) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
+        if (! (new GradeService())->deleteForOffering($classOfferingId, $courseEnrollmentId)) {
+            return redirect()->to(site_url('instructor/classes/' . $classOfferingId . '/grades'))
+                ->with('error', 'The grade could not be found or deleted.');
+        }
+
+        return redirect()->to(site_url('instructor/classes/' . $classOfferingId . '/grades'))
+            ->with('message', 'Grade deleted.');
+    }
 }

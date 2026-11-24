@@ -189,4 +189,51 @@ class RegistrarController extends BaseController
             'roster' => $portal->classRoster($classOfferingId),
         ]);
     }
+
+    public function searchGrades()
+    {
+        $query = trim((string) $this->request->getGet('q'));
+        $portal = new PortalData();
+
+        return view('registrar/grades', [
+            'query'    => $query,
+            'students' => $query === '' ? [] : $portal->searchStudents($query),
+            'programs' => $portal->programs(),
+            'courses'  => $portal->courses(),
+        ]);
+    }
+
+    public function studentReport(int $studentId)
+    {
+        $portal = new PortalData();
+        $student = $portal->student($studentId);
+
+        if ($student === null) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
+        return view('registrar/student_report', [
+            'student' => $student,
+            'grades'  => $portal->studentGrades($studentId),
+        ]);
+    }
+
+    public function programCourseReport()
+    {
+        $db = db_connect();
+        $programId = (int) $this->request->getGet('program_id');
+        $courseId = (int) $this->request->getGet('course_id');
+        $program = $db->table('programs')->where('program_id', $programId)->get()->getRowArray();
+        $course = $db->table('courses')->where('course_id', $courseId)->get()->getRowArray();
+
+        if ($program === null || $course === null) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
+        return view('registrar/program_course_report', [
+            'program' => $program,
+            'course'  => $course,
+            'grades'  => (new PortalData())->programCourseGrades($programId, $courseId),
+        ]);
+    }
 }
