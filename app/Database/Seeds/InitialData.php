@@ -2,6 +2,7 @@
 
 namespace App\Database\Seeds;
 
+use App\Models\UserModel;
 use CodeIgniter\Database\Seeder;
 
 class InitialData extends Seeder
@@ -25,36 +26,36 @@ class InitialData extends Seeder
             ],
         ]);
 
-        $this->seedData('accounts', [
+        $this->seedUsers([
             [
                 'username' => 'admin',
-                'password' => password_hash('admin123', PASSWORD_DEFAULT),
                 'role' => 'Admin',
                 'role_id' => null,
+                'password' => 'admin123',
             ],
             [
                 'username' => 'registrar',
-                'password' => password_hash('registrar123', PASSWORD_DEFAULT),
                 'role' => 'Registrar',
                 'role_id' => null,
+                'password' => 'registrar123',
             ],
             [
                 'username' => 'teacher1',
-                'password' => password_hash('teacher123', PASSWORD_DEFAULT),
                 'role' => 'Instructor',
                 'role_id' => 1,
+                'password' => 'teacher123',
             ],
             [
                 'username' => 'student1',
-                'password' => password_hash('student123', PASSWORD_DEFAULT),
                 'role' => 'Student',
                 'role_id' => 1,
+                'password' => 'student123',
             ],
             [
                 'username' => 'student2',
-                'password' => password_hash('student123', PASSWORD_DEFAULT),
                 'role' => 'Student',
                 'role_id' => 2,
+                'password' => 'student123',
             ],
         ]);
 
@@ -186,5 +187,31 @@ class InitialData extends Seeder
     public function seedData($table, $data)
     {
         return $this->db->table($table)->insertBatch($data);
+    }
+
+    private function seedUsers(array $users): void
+    {
+        $userModel = model(UserModel::class);
+
+        foreach ($users as $userData) {
+            $user = $userModel->createNewUser([
+                'username' => $userData['username'],
+                'email'    => $userData['username'],
+                'password' => $userData['password'],
+                'active'   => true,
+                'role_id'  => $userData['role_id'],
+            ]);
+
+            $userModel->save($user);
+            $savedUser = $userModel->findByCredentials([
+                'username' => $userData['username'],
+            ]);
+
+            if ($savedUser === null) {
+                throw new \RuntimeException('Unable to load seeded Shield user: ' . $userData['username']);
+            }
+
+            $savedUser->addGroup(strtolower($userData['role']));
+        }
     }
 }

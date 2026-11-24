@@ -13,14 +13,41 @@ final class PortalWorkflowTest extends CIUnitTestCase
 {
     use DatabaseTestTrait;
 
-    protected $namespace = 'App';
+    protected $namespace = null;
     protected $seed = InitialData::class;
 
-    public function testMigrationsAndSeedCreateRoleAccountsAndClassGrades(): void
+    public function testMigrationsAndSeedCreateShieldUsersAndClassGrades(): void
     {
-        $this->assertSame(5, $this->db->table('accounts')->countAllResults());
+        $this->assertSame(5, $this->db->table('users')->countAllResults());
+        $this->assertFalse($this->db->tableExists('accounts'));
         $this->assertSame(2, $this->db->table('class_offerings')->countAllResults());
         $this->assertSame(2, $this->db->table('grades')->countAllResults());
+    }
+
+    public function testShieldUsersKeepTheirPasswordAndRoleMapping(): void
+    {
+        $user = model(\App\Models\UserModel::class)->findByCredentials([
+            'username' => 'student1',
+        ]);
+
+        $this->assertNotNull($user);
+        $this->assertSame(1, (int) $user->role_id);
+        $this->assertTrue($user->inGroup('student'));
+        $this->assertTrue(password_verify('student123', $user->password_hash));
+    }
+
+    public function testShieldAuthenticatesUsernameAndLoadsItsRoleGroup(): void
+    {
+        $result = auth()->attempt([
+            'username' => 'student1',
+            'password' => 'student123',
+        ]);
+
+        $this->assertTrue($result->isOK());
+        $this->assertTrue(auth()->loggedIn());
+        $this->assertTrue(auth()->user()->inGroup('student'));
+
+        auth()->logout();
     }
 
     public function testStudentsOnlyReceiveTheirOwnClassGrades(): void

@@ -10,18 +10,18 @@ class InstructorController extends BaseController
 {
     public function classes()
     {
-        $user = session('user');
+        $user = auth()->user();
 
         return view('instructor/classes', [
-            'classes' => (new PortalData())->classes((int) $user['role_id']),
+            'classes' => (new PortalData())->classes((int) $user->role_id),
         ]);
     }
 
     public function grades(int $classOfferingId)
     {
-        $user = session('user');
+        $user = auth()->user();
         $portal = new PortalData();
-        $class = $portal->classOffering($classOfferingId, (int) $user['role_id']);
+        $class = $portal->classOffering($classOfferingId, (int) $user->role_id);
         if ($class === null) {
             throw PageNotFoundException::forPageNotFound();
         }
@@ -36,8 +36,8 @@ class InstructorController extends BaseController
 
     public function saveGrades(int $classOfferingId)
     {
-        $user = session('user');
-        if ((new PortalData())->classOffering($classOfferingId, (int) $user['role_id']) === null) {
+        $user = auth()->user();
+        if ((new PortalData())->classOffering($classOfferingId, (int) $user->role_id) === null) {
             throw PageNotFoundException::forPageNotFound();
         }
 

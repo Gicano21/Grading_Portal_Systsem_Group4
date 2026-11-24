@@ -38,11 +38,15 @@ database.default.port = 3306
 Create the `grading_portal` database (or use the database name you configured), then apply the schema and load the example records:
 
 ```powershell
-php spark migrate
+php spark migrate --all
 php spark db:seed InitialData
 ```
 
-The seeder inserts sample records for students, accounts, courses, programs, sections, academic years, enrollments, instructors, course enrollments, and grades. It includes hard-coded demo account passwords; use seed data only in a local development database and change the seeder credentials before using it in any shared environment. The seeder uses batch inserts, so do not run it repeatedly against the same database unless you have cleared the existing sample rows.
+Run `php spark migrate --all` instead of `php spark migrate` so migrations from CodeIgniter Shield are included. The migration transfers existing account credentials and role links into Shield and removes the old `accounts` table. Back up existing data before migrating.
+
+The seeder inserts sample records for students, Shield users, courses, programs, sections, academic years, enrollments, instructors, course enrollments, and grades. It includes hard-coded demo passwords; use seed data only in a local development database and change the seeder credentials before using it in any shared environment. The seeder uses batch inserts, so do not run it repeatedly against the same database unless you have cleared the existing sample rows.
+
+Shield provides session-based authentication and role groups (`admin`, `registrar`, `instructor`, and `student`). Registration and magic-link login are disabled.
 
 The local demo credentials are:
 
@@ -70,7 +74,9 @@ Migrations are in `app/Database/Migrations`. They define these tables:
 | Table | Purpose |
 | --- | --- |
 | `students` | Student records |
-| `accounts` | Account names, password hashes, and role labels |
+| `users`, `auth_identities` | Shield user accounts, password identities, and student/instructor record links |
+| `auth_groups_users` | Shield role-group membership |
+| `auth_logins`, `auth_token_logins`, `auth_remember_tokens`, `auth_permissions_users` | Shield authentication and authorization records |
 | `instructors` | Instructor records |
 | `courses` | Course catalog |
 | `programs` | Academic programs |
@@ -85,7 +91,7 @@ Useful migration commands:
 
 ```powershell
 php spark migrate:status
-php spark migrate
+php spark migrate --all
 php spark migrate:rollback
 ```
 

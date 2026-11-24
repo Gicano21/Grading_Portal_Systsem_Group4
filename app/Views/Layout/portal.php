@@ -7,24 +7,33 @@
     <link rel="stylesheet" href="<?= base_url('css/portal.css') ?>">
 </head>
 <body>
-    <?php $user = session('user'); ?>
+    <?php
+    $user = auth()->user();
+    $roleLabel = 'User';
+    foreach (['admin' => 'Admin', 'registrar' => 'Registrar', 'instructor' => 'Instructor', 'student' => 'Student'] as $group => $label) {
+        if ($user?->inGroup($group)) {
+            $roleLabel = $label;
+            break;
+        }
+    }
+    ?>
     <header class="topbar">
         <a class="brand" href="<?= site_url($user ? 'dashboard' : 'login') ?>">Grade<span>Portal</span></a>
         <?php if ($user): ?>
             <nav class="navigation" aria-label="Main navigation">
-                <?php if ($user['role'] === 'Admin'): ?>
+                <?php if ($user->inGroup('admin')): ?>
                     <a href="<?= site_url('admin') ?>">Overview</a>
                     <a href="<?= site_url('admin/classes') ?>">Classes &amp; grades</a>
-                <?php elseif ($user['role'] === 'Registrar'): ?>
+                <?php elseif ($user->inGroup('registrar')): ?>
                     <a href="<?= site_url('registrar') ?>">Registrar workspace</a>
-                <?php elseif ($user['role'] === 'Instructor'): ?>
+                <?php elseif ($user->inGroup('instructor')): ?>
                     <a href="<?= site_url('instructor/classes') ?>">My classes</a>
                 <?php else: ?>
                     <a href="<?= site_url('student/grades') ?>">My grades</a>
                 <?php endif; ?>
             </nav>
             <div class="user-menu">
-                <span><?= esc($user['username']) ?> <small><?= esc($user['role']) ?></small></span>
+                <span><?= esc($user->username) ?> <small><?= esc($roleLabel) ?></small></span>
                 <form method="post" action="<?= site_url('logout') ?>">
                     <?= csrf_field() ?>
                     <button class="button button-quiet" type="submit">Sign out</button>

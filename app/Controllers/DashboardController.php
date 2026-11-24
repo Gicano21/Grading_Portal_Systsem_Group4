@@ -6,20 +6,21 @@ class DashboardController extends BaseController
 {
     public function index()
     {
-        $destinations = [
-            'Admin'      => 'admin',
-            'Registrar'  => 'registrar',
-            'Instructor' => 'instructor/classes',
-            'Student'    => 'student/grades',
-        ];
-        $role = session('user.role');
+        $user = auth()->user();
 
-        if (! isset($destinations[$role])) {
-            session()->destroy();
-
-            return redirect()->to(site_url('login'))->with('error', 'Your account role is not recognized. Please sign in again.');
+        foreach ([
+            'admin'      => 'admin',
+            'registrar'  => 'registrar',
+            'instructor' => 'instructor/classes',
+            'student'    => 'student/grades',
+        ] as $group => $destination) {
+            if ($user->inGroup($group)) {
+                return redirect()->to(site_url($destination));
+            }
         }
 
-        return redirect()->to(site_url($destinations[$role]));
+        auth()->logout();
+
+        return redirect()->to(site_url('login'))->with('error', 'Your account role is not recognized. Please sign in again.');
     }
 }

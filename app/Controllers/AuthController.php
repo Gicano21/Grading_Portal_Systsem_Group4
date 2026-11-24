@@ -6,7 +6,7 @@ class AuthController extends BaseController
 {
     public function login()
     {
-        if (session('user')) {
+        if (auth()->loggedIn()) {
             return redirect()->to(site_url('dashboard'));
         }
 
@@ -19,7 +19,7 @@ class AuthController extends BaseController
     public function authenticate()
     {
         $rules = [
-            'username' => 'required|max_length[100]',
+            'username' => 'required|max_length[30]',
             'password' => 'required|max_length[255]',
         ];
 
@@ -27,44 +27,41 @@ class AuthController extends BaseController
             return redirect()->back()->withInput()->with('validationErrors', $this->validator->getErrors());
         }
 
-        $username = trim((string) $this->request->getPost('username'));
-        $password = (string) $this->request->getPost('password');
-        $account  = db_connect()->table('accounts')
-            ->where('username', $username)
-            ->get()
-            ->getRowArray();
+        $result = auth()->attempt([
+            'username' => trim((string) $this->request->getPost('username')),
+            'password' => (string) $this->request->getPost('password'),
+        ]);
 
-        if ($account === null || ! password_verify($password, $account['password'])) {
+        if (! $result->isOK()) {
             return redirect()->back()->withInput()->with('error', 'The username or password is incorrect.');
         }
 
-        $role = $account['role'];
-        if (! in_array($role, ['Admin', 'Registrar', 'Instructor', 'Student'], true)) {
+        $user = auth()->user();
+
+        if (! $user->inGroup('admin', 'registrar', 'instructor', 'student')) {
+            auth()->logout();
+
             return redirect()->back()->withInput()->with('error', 'This account does not have a supported role.');
         }
 
-        if ($role === 'Student' && ! db_connect()->table('students')->where('student_id', $account['role_id'])->countAllResults()) {
+        if ($user->inGroup('student') && ! db_connect()->table('students')->where('student_id', $user->role_id)->countAllResults()) {
+            auth()->logout();
+
             return redirect()->back()->withInput()->with('error', 'This student account is not linked to a student record.');
         }
 
-        if ($role === 'Instructor' && ! db_connect()->table('instructors')->where('instructor_id', $account['role_id'])->countAllResults()) {
+        if ($user->inGroup('instructor') && ! db_connect()->table('instructors')->where('instructor_id', $user->role_id)->countAllResults()) {
+            auth()->logout();
+
             return redirect()->back()->withInput()->with('error', 'This instructor account is not linked to an instructor record.');
         }
-
-        session()->regenerate(true);
-        session()->set('user', [
-            'account_id' => (int) $account['account_id'],
-            'username'   => $account['username'],
-            'role'       => $role,
-            'role_id'    => $account['role_id'] === null ? null : (int) $account['role_id'],
-        ]);
 
         return redirect()->to(site_url('dashboard'));
     }
 
     public function logout()
     {
-        session()->destroy();
+        auth()->logout();
 
         return redirect()->to(site_url('login'))->with('message', 'You have been signed out.');
     }
